@@ -1,0 +1,6 @@
+.top-bar {
+  width: 100vw;
+  height: 30px;
+  background-color: aqua;
+  -webkit-app-region: drag;
+}

@@ -1,25 +1,43 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect, useState, Component } from 'react'
 import { Button, Input, Typography, message } from 'antd'
-import { clearHost, getUrlData, writeToHost } from 'data/data'
+import {
+  clearHost,
+  urlData,
+  writeToHost,
+  addUrl,
+  IUrlItem,
+  systemState,
+} from 'data/data'
 import { isAdmin } from 'utils'
+import { observer } from 'mobx-react'
 import './home.css'
 
 const { Paragraph } = Typography
 
 const UrlItem: FC<{
-  url?: string
-}> = ({ url = '' }) => {
-  const [turl, setUrl] = useState(url)
+  url: IUrlItem
+}> = ({ url }) => {
+  const [turl, setUrl] = useState(url?.url)
   return (
     <>
-      <Paragraph editable={{ onChange: setUrl }}>{turl}</Paragraph>
+      <Paragraph
+        editable={{
+          onChange: systemState.running
+            ? (val) => {
+                setUrl(val)
+                url.url = val
+              }
+            : undefined,
+        }}
+      >
+        {turl}
+      </Paragraph>
     </>
   )
 }
 
-const StateBtn: FC = () => {
+const StateBtn: FC = observer(() => {
   const [msgapi, contextHolder] = message.useMessage()
-  const [state, SetState] = useState(false)
   useEffect(() => {
     if (!isAdmin) {
       msgapi.warning('需要管理员权限以写入host')
@@ -36,27 +54,23 @@ const StateBtn: FC = () => {
           fontSize: '30px',
         }}
         onClick={() => {
-          if (!state) {
+          if (!systemState.running) {
             if (!writeToHost()) msgapi.error('未能写入host')
-            else SetState(true)
+            else systemState.running = true
           } else {
             if (!clearHost()) msgapi.error('未能写入host')
-            else SetState(false)
+            else systemState.running = false
           }
         }}
       >
-        {state ? '停止' : '启动'}
+        {systemState.running ? '停止' : '启动'}
       </Button>
     </div>
   )
-}
+})
 
 const Home: FC = () => {
-  const [urls, setUrls] = useState<string[]>([])
   const [txt, SetText] = useState('')
-  useEffect(() => {
-    setUrls(getUrlData())
-  }, [])
   return (
     <div className="home">
       <StateBtn />
@@ -66,8 +80,8 @@ const Home: FC = () => {
           paddingTop: '20px',
         }}
       >
-        {urls?.map((val) => (
-          <UrlItem url={val} key={val} />
+        {urlData?.map((val) => (
+          <UrlItem url={val} key={val.url} />
         ))}
       </div>
       <div className="submit-block" style={{ paddingTop: '20px' }}>
@@ -84,7 +98,7 @@ const Home: FC = () => {
             type="primary"
             onClick={() => {
               if (txt.length <= 0) return
-              setUrls([...urls, txt])
+              addUrl(txt)
               SetText('')
             }}
           >
@@ -95,4 +109,4 @@ const Home: FC = () => {
     </div>
   )
 }
-export default Home
+export default observer(Home)

@@ -1,11 +1,25 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs'
+import { observable, IObservableArray, autorun, IObservable } from 'mobx'
 
-var urlData: string[] = []
+//var urlData: string[] = []
+export interface IUrlItem {
+  url: string
+}
+export var urlData: IObservableArray<IUrlItem> = observable.array([])
+
+export var systemState = observable({
+  running: false,
+})
+
 var inited = false
 
 const startInfo = '# Clipper Host Info Start'
 const endInfo = '# Clipper Host Info End'
-const hostPath = 'C:/Windows/System32/drivers/etc/hosts'
+const hostPath = './testHost' //'C:/Windows/System32/drivers/etc/hosts'
+
+export const addUrl: (url: string) => void = (url) => {
+  urlData.push({ url })
+}
 
 export const initUrlData: () => void = () => {
   if (!existsSync('./data.config')) {
@@ -17,12 +31,19 @@ export const initUrlData: () => void = () => {
   const data = readFileSync('./data.config', { flag: 'r' })
   const res = data.toString()
   console.log(`success load file, ${res}`)
-  urlData = res.split('\n').filter((val) => val.length > 0)
-  inited = true
-}
+  //urlData = res.split('\n').filter((val) => val.length > 0)
+  urlData.clear()
+  res
+    .split('\n')
+    .filter((val) => val.length > 0)
+    .map((val) => {
+      return { url: val }
+    })
+    .forEach((val) => {
+      urlData.push(val)
+    })
 
-export const getUrlData: () => string[] = () => {
-  return urlData
+  inited = true
 }
 
 export const writeToHost: () => boolean = () => {
@@ -76,5 +97,9 @@ export const clearHost: () => boolean = () => {
   }
   return true
 }
+
+autorun(() => {
+  console.log(urlData.map((val) => val.url).join(';'))
+})
 
 initUrlData()
