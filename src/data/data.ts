@@ -7,10 +7,6 @@ export interface IUrlItem {
 }
 export var urlData: IObservableArray<IUrlItem> = observable.array([])
 
-export var systemState = observable({
-  running: false,
-})
-
 var inited = false
 
 const startInfo = '# Clipper Host Info Start'

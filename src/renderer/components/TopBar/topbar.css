@@ -1,6 +1,9 @@
 .top-bar {
   width: 100vw;
   height: 30px;
-  background-color: aqua;
   -webkit-app-region: drag;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 10px;
 }

@@ -1,40 +1,35 @@
 import { FC, useEffect, useState, Component } from 'react'
-import { Button, Input, Typography, message } from 'antd'
-import {
-  clearHost,
-  urlData,
-  writeToHost,
-  addUrl,
-  IUrlItem,
-  systemState,
-} from 'data/data'
+import { Button, Input, Typography, message, Card } from 'antd'
+import { clearHost, urlData, writeToHost, addUrl, IUrlItem } from 'data/data'
+import { systemState } from 'data/system-state'
 import { isAdmin } from 'utils'
 import { observer } from 'mobx-react'
 import './home.css'
+import { autorun } from 'mobx'
 
 const { Paragraph } = Typography
 
 const UrlItem: FC<{
   url: IUrlItem
-}> = ({ url }) => {
-  const [turl, setUrl] = useState(url?.url)
+}> = observer(({ url }) => {
   return (
     <>
       <Paragraph
-        editable={{
-          onChange: systemState.running
-            ? (val) => {
-                setUrl(val)
-                url.url = val
+        editable={
+          systemState.running
+            ? false
+            : {
+                onChange: (val) => {
+                  if (!systemState.running) url.url = val
+                },
               }
-            : undefined,
-        }}
+        }
       >
-        {turl}
+        {url.url}
       </Paragraph>
     </>
   )
-}
+})
 
 const StateBtn: FC = observer(() => {
   const [msgapi, contextHolder] = message.useMessage()
@@ -52,6 +47,12 @@ const StateBtn: FC = observer(() => {
           width: '200px',
           height: '200px',
           fontSize: '30px',
+          border: 'none',
+          boxShadow: !systemState.running
+            ? '5px 5px 10px #adc9b5, -5px -5px 10px #e9fff5'
+            : '26px 26px 52px #adc9b5,-26px -26px 52px #e9fff5',
+          backgroundColor: '#cbedd5',
+          transition: '1s',
         }}
         onClick={() => {
           if (!systemState.running) {
@@ -63,7 +64,13 @@ const StateBtn: FC = observer(() => {
           }
         }}
       >
-        {systemState.running ? '停止' : '启动'}
+        {systemState.running
+          ? `${(systemState.runningTime / 60).toFixed(0).padStart(2, '0')}:${(
+              systemState.runningTime % 60
+            )
+              .toString()
+              .padStart(2, '0')}`
+          : '启'}
       </Button>
     </div>
   )
@@ -74,21 +81,16 @@ const Home: FC = () => {
   return (
     <div className="home">
       <StateBtn />
-      <div
-        className="urls"
-        style={{
-          paddingTop: '20px',
-        }}
-      >
+      <div className="url-card">
         {urlData?.map((val) => (
           <UrlItem url={val} key={val.url} />
         ))}
       </div>
-      <div className="submit-block" style={{ paddingTop: '20px' }}>
+      <div className="submit-block">
         <Input.Group compact>
           <Input
-            style={{ width: '200px' }}
-            defaultValue="https://"
+            style={{ width: '200px', backgroundColor: '#cbedd5' }}
+            defaultValue=""
             value={txt}
             onChange={(e) => {
               SetText(e.target.value)

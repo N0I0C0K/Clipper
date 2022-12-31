@@ -1,14 +1,28 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom'
-import icon from '../../assets/icon.svg'
 import Home from './pages/home/home'
-import './App.css'
 import TopBar from './components/TopBar'
+import { ConfigProvider } from 'antd'
+import './App.css'
 
 export default function App() {
   return (
-    <>
-      <TopBar />
-      <Home />
-    </>
+    <div className="App">
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#439a97',
+            colorText: '#439A97',
+            fontSize: 14,
+            borderRadius: 10,
+            wireframe: false,
+            sizeStep: 4,
+            sizeUnit: 4,
+          },
+        }}
+      >
+        <TopBar />
+        <Home />
+      </ConfigProvider>
+    </div>
   )
 }
